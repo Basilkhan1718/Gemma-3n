@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whiteboard App</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <button onclick="showChat()">Chat</button>
+        <button onclick="showPDF()">Upload PDF</button>
+        <!-- Add more sidebar buttons here if needed -->
+    </div>
+
+    <div class="main">
+        <div id="chat-pane" class="pane">
+            <h2>Chat</h2>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px;">
+                <label for="contextToggle">Use Context:</label>
+                <input type="checkbox" id="contextToggle" checked>
+            </div>
+            <div id="chatBox" style="flex:1; overflow-y: auto;"></div>
+            <div style="display: flex;">
+                <input type="text" id="messageInput" placeholder="Enter message" style="flex:1;">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div id="pdf-pane" class="pane">
+            <h2>Upload PDF</h2>
+            <form id="pdfForm" enctype="multipart/form-data">
+                <input type="file" name="pdf" accept="application/pdf">
+                <button type="submit">Upload</button>
+            </form>
+            <div id="pdfResult"></div>
+        </div>
+    </div>
+
+    <!-- SVG Whiteboard -->
+    <svg id="whiteboard">
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>
+
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <button id="pen">Pen</button>
+        <button id="eraser">Eraser</button>
+        <input type="color" id="colorPicker">
+        <input type="range" id="brushSize" min="1" max="50" value="2">
+        <button id="undo">Undo</button>
+        <button id="redo">Redo</button>
+        <button id="pan-mode">Pan</button>
+        <button id="toggle-grid">Grid</button>
+        <button id="select-tool">Select</button>
+        <select id="shape-select">
+            <option value="none">Shapes</option>
+            <option value="square">Square</option>
+            <option value="rectangle">Rectangle</option>
+            <option value="circle">Circle</option>
+            <option value="ellipse">Ellipse</option>
+            <option value="arrow">Arrow</option>
+        </select>
+    </div>
+
+    <!-- Zoom Controls -->
+    <div id="zoom-controls">
+        <input type="range" id="zoom-slider" min="10" max="300" value="100">
+        <select id="zoom-value-display">
+            <option value="10">10%</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="75">75%</option>
+            <option value="100" selected>100%</option>
+            <option value="125">125%</option>
+            <option value="150">150%</option>
+            <option value="200">200%</option>
+            <option value="300">300%</option>
+        </select>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
