@@ -12,6 +12,7 @@
     <div id="sidebar">
         <button onclick="showChat()">Chat</button>
         <button onclick="showPDF()">Upload PDF</button>
+        <button onclick="showTemplates()">Templates</button> <!-- ✅ New -->
         <!-- Add more sidebar buttons here if needed -->
     </div>
 
@@ -36,6 +37,15 @@
                 <button type="submit">Upload</button>
             </form>
             <div id="pdfResult"></div>
+        </div>
+
+        <div id="template-pane" class="pane">
+            <h2>Templates</h2>
+            <div id="template-list" style="padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+                <div class="template-container">🌌 Bullet Points Template</div>
+                <div class="template-container">🧠 Concept Mapping Template</div>
+                <div class="template-container">📄 Summary Response Template</div>
+            </div>
         </div>
     </div>
 
