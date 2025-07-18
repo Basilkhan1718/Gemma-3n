@@ -77,7 +77,8 @@ if __name__ == '__main__':
     model = AutoModelForCausalLM.from_pretrained(model_name)
     processor = AutoProcessor.from_pretrained(model_name)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = 'cpu'  # Force CPU for compatibility
     model = model.to(device)
 
     app.run(debug=True, use_reloader=False)
