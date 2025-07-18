@@ -784,6 +784,17 @@ function showPDF() {
     chatPane.classList.remove('open');
 }
 
+function showTemplates() {
+    const chatPane = document.getElementById('chat-pane');
+    const pdfPane = document.getElementById('pdf-pane');
+    const templatePane = document.getElementById('template-pane');
+
+    templatePane.classList.toggle('open');
+    chatPane.classList.remove('open');
+    pdfPane.classList.remove('open');
+}
+
+
 
 function sendMessage() {
     const input = document.getElementById('messageInput');
@@ -822,3 +833,45 @@ function sendMessage() {
         console.error('Error:', error);
     });
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const templates = document.querySelectorAll('.template-container');
+
+    templates.forEach(template => {
+        template.addEventListener('click', () => {
+            const templateName = template.textContent.trim();
+            console.log("Clicked template:", templateName); // <-- ADD THIS
+            let message = '';
+
+            // Predefined prompts
+            if (templateName.includes('BUlletpoints')) {
+                message = "Summarize the following content into 6-8 concise bullet points.";
+            } else if (templateName.includes('Concept')) {
+                message = "Create a concept map in text form for the topic: Artificial Intelligence.";
+            } else if (templateName.includes('Summary')) {
+                message = "Summarize the topic of black holes in 3 short paragraphs.";
+            }
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: message,
+                    use_context: false
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const result = data.reply;
+
+                const div = document.createElement('div');
+                div.classList.add('template-result');
+                div.textContent = result;
+                document.getElementById('template-list').appendChild(div);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            });
+        });
+    });
+});
+
