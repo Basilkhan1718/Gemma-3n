@@ -1,0 +1,123 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+#whiteboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    z-index: 1;
+}
+
+/* Sidebar styling */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 100%;
+    background-color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    z-index: 1000;
+}
+
+#sidebar button {
+    width: 40px;
+    height: 40px;
+    margin: 10px 0;
+    background-color: #555;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#sidebar button:hover {
+    background-color: #777;
+}
+
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+.pane {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100%;
+    background-color: #f0f0f0;
+    border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    transition: left 0.3s;
+    z-index: 999;
+}
+
+.pane.open {
+    left: 60px;
+}
+
+#chat-pane.open {
+    left: 60px; /* beside sidebar */
+}
+
+#pdf-pane.open {
+    left: 60px; /* beside sidebar */
+}
+
+#chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+#chat-input {
+    border: none;
+    padding: 10px;
+    width: calc(100% - 60px);
+}
+
+#chat-send {
+    width: 60px;
+}
+
+/* Toolbar styling */
+#toolbar {
+    position: fixed;
+    bottom: 10px;
+    left: 70px; /* Adjusted to not overlap sidebar */
+    background-color: #f0f0f0;
+    padding: 8px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
+}
+
+/* Zoom controls styling */
+#zoom-controls {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: #f0f0f0;
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
+}
