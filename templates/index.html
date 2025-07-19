@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whiteboard App</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <button onclick="showChat()">Chat</button>
+        <button onclick="showPDF()">Upload PDF</button>
+        <button onclick="showTemplates()">Templates</button>
+        <!-- Add more sidebar buttons here if needed -->
+    </div>
+
+    <div class="main">
+        <div id="chat-pane" class="pane">
+            <h2>Chat</h2> 
+            <!-- add api option where i can chose from dropdown and select and put my api key or use hugging face to download the model near the "Chat" heading-->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px;">
+                <select id="apiSelect" onchange="updateApiKeyPlaceholder()">
+                    <option value="google">Gemma API</option>
+                    <option value="huggingface">Hugging Face</option>
+                </select>
+                <input type="text" id="apiKeyInput" placeholder="Enter API Key" style="flex:1;">
+                <button onclick="setApiKey()">Set API Key</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px;">
+                <label for="contextToggle">Use Context:</label>
+                <input type="checkbox" id="contextToggle" checked>
+                <select id="templateSelect">
+                    <option value="none">No Template</option>
+                    <option value="Bulletpoints Summarization">Bulletpoints Summarization</option>
+                    <option value="Summary">Summary</option>
+                    <option value="Code">Code</option>
+                    <option value="Graph">Graph</option>
+                </select>
+            </div>
+            <div id="chatBox" style="flex:1; overflow-y: auto;"></div>
+            <div style="display: flex;">
+                <input type="text" id="messageInput" placeholder="Enter message" style="flex:1;">
+                <button onclick="sendMessage()">Send</button>
+                <button id="exportBtn" onclick="exportToSVG()">Export</button>
+            </div>
+        </div>
+
+        <div id="pdf-pane" class="pane">
+            <h2>Upload PDF</h2>
+            <form id="pdfForm" enctype="multipart/form-data">
+                <input type="file" name="pdf" accept="application/pdf">
+                <button type="submit">Upload</button>
+            </form>
+            <div id="pdfResult"></div>
+        </div>
+
+        <div id="template-pane" class="pane">
+            <h2>Templates</h2>
+            <div id="template-list" style="padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+                <div class="template-container">🌌 Bullet Points Template</div>
+                <div class="template-container">🧠 Concept Mapping Template</div>
+                <div class="template-container">📄 Summary Response Template</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG Whiteboard -->
+    <svg id="whiteboard">
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>
+
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <button id="pen">Pen</button>
+        <button id="eraser">Eraser</button>
+        <input type="color" id="colorPicker">
+        <input type="range" id="brushSize" min="1" max="50" value="2">
+        <button id="undo">Undo</button>
+        <button id="redo">Redo</button>
+        <button id="pan-mode">Pan</button>
+        <button id="toggle-grid">Grid</button>
+        <button id="select-tool">Select</button>
+        <select id="shape-select">
+            <option value="none">Shapes</option>
+            <option value="square">Square</option>
+            <option value="rectangle">Rectangle</option>
+            <option value="circle">Circle</option>
+            <option value="ellipse">Ellipse</option>
+            <option value="arrow">Arrow</option>
+        </select>
+    </div>
+
+    <!-- Zoom Controls -->
+    <div id="zoom-controls">
+        <input type="range" id="zoom-slider" min="10" max="300" value="100">
+        <select id="zoom-value-display">
+            <option value="10">10%</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="75">75%</option>
+            <option value="100" selected>100%</option>
+            <option value="125">125%</option>
+            <option value="150">150%</option>
+            <option value="200">200%</option>
+            <option value="300">300%</option>
+        </select>
+    </div>
+    <div id="miniMenu" style="position:absolute; display:none; background:white; border:1px solid gray; padding:5px; z-index:1000;">
+        <button id="sendToChatBtn">Send to Chat</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='libs/marked.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
