@@ -795,10 +795,17 @@ function sendMessage() {
     .then(response => response.json())
     .then(data => {
         const botMsgDiv = document.createElement('div');
-        botMsgDiv.textContent = 'Bot: ' + data.reply;
+        
+        // 1. Convert Markdown to raw HTML
+        const rawHtml = marked.parse(data.reply);
+        // 2. Sanitize it
+        const cleanHtml = DOMPurify.sanitize(rawHtml);
+        // 3. Inject into the div
+        botMsgDiv.innerHTML = cleanHtml;
+        
         chatBox.appendChild(botMsgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-        latestBotResponse=data.reply;
+        latestBotResponse = data.reply;
     })
     .catch(error => {
         console.error('Error:', error);
@@ -906,9 +913,16 @@ function dataURLToBlob(dataurl) {
 }
 
 function appendMessage(text) {
-    const chatBox = document.getElementById('chatBox'); // changed from chatMessages
+    const chatBox = document.getElementById('chatBox');
     const msgDiv = document.createElement('div');
-    msgDiv.textContent = text;
+
+    // Convert Markdown to HTML and sanitize it
+    const rawHtml = marked.parse(text);
+    const cleanHtml = DOMPurify.sanitize(rawHtml);
+
+    // Set innerHTML to display styled Markdown
+    msgDiv.innerHTML = cleanHtml;
+
     chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
 }

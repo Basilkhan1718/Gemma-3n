@@ -74,6 +74,24 @@ body, html {
     left: 60px; /* beside sidebar */
 }
 
+#chatBox div pre {
+    background-color: #f4f4f4;
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+#chatBox div code {
+    background-color: #eee;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+#chatBox div blockquote {
+    border-left: 3px solid #ccc;
+    padding-left: 10px;
+    color: #666;
+}
+
+
 #pdf-pane.open {
     left: 60px; /* beside sidebar */
 }
