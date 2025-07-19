@@ -1,19 +1,26 @@
-# TODO: need to correct hugging face implementation
-#   1. if it was manual it could be done by using cmd prompt with "huggingface-cli login" then entering the token(this is given by user in website) but we want automatic
-#   2. then we can use the model downloaded on my device by AutoModelForCausalLM as usual 
 from transformers import AutoModelForCausalLM, AutoProcessor
 import torch
+import base64
+from io import BytesIO
+from PIL import Image
 from flask import Flask, render_template, request, jsonify
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 app = Flask(__name__)
 
 # Global variables for API keys and models
 GOOGLE_API_KEY = None
 HF_API_KEY = None
-gemma_model = None
+
+# for api 
+GEMMA_MODEL_NAME = "models/gemma-3n-e4b-it"
+gemma_model_chat = None
+google_client = None
+# Hugging Face model and processor
 hf_model = None
 hf_processor = None
+
 use_google_api = True
 
 @app.route('/set_api_keys', methods=['POST'])
@@ -36,10 +43,11 @@ def set_model_preferences():
     return jsonify({'message': 'Model preferences updated successfully'})
 
 def initialize_google_api(api_key):
-    global GOOGLE_API_KEY, gemma_model
+    global GOOGLE_API_KEY, gemma_model_chat, google_client 
     GOOGLE_API_KEY = api_key
-    genai.configure(api_key=GOOGLE_API_KEY)
-    gemma_model = genai.GenerativeModel('gemma-3n-e2b-it')
+    
+    google_client = genai.Client(api_key=GOOGLE_API_KEY)
+    gemma_model_chat = google_client.chats.create(model=GEMMA_MODEL_NAME)
 
 def initialize_huggingface_model(api_key):
     global HF_API_KEY, hf_model, hf_processor
@@ -68,8 +76,8 @@ def load_huggingface_model():
         initialize_huggingface_model(HF_API_KEY)
 
 def load_google_model():
-    global gemma_model
-    if not gemma_model:
+    global gemma_model_chat
+    if not gemma_model_chat:
         initialize_google_api(GOOGLE_API_KEY)
 
 def split_into_chunks(texts, chunk_size=512):
@@ -80,6 +88,12 @@ def split_into_chunks(texts, chunk_size=512):
             chunk = " ".join(words[i:i+chunk_size])
             chunks.append(chunk)
     return chunks
+
+def pil_image_to_base64(image: Image.Image, format="jpeg") -> str:
+    """Converts a PIL Image object to a base64 string."""
+    buffered = BytesIO()
+    image.save(buffered, format=format)
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from sklearn.metrics.pairwise import cosine_similarity
@@ -105,15 +119,11 @@ def chat():
         message = message+"Give the output in points."
     elif template_type == 'Summary':
         message = message+"Give the output as a summary of the query."
-    elif template_type == 'Code':
-        message = message+"Give code."
-    elif template_type == 'Graph':
-        message = message+"Write this function in proper explicit mathematical form equation(like y=.....) if incorrectly written. And give the equation only."
 
     if use_context and embeddings_list:
         embedded_query=embedder.embed_query(message)
         scores=cosine_similarity([embedded_query],embeddings_list)[0]
-        scores=cosine_similarity([embedded_query],embeddings_list)[0]
+
         top_index = sorted(list(enumerate(scores)), key=lambda x:x[1])[-1][0]
         query = all_chunks[top_index] + "\nGiven the above info as reference, answer the below question: " + message
     else:
@@ -122,7 +132,7 @@ def chat():
     try:
         if use_google_api:
             load_google_model()
-            response = gemma_model.generate_content(query).text
+            response = gemma_model_chat.send_message(query).text
         else:
             load_huggingface_model()
             inputs = hf_processor(text=query, return_tensors="pt")
@@ -158,7 +168,6 @@ def image_prompt_chat():
             scores=cosine_similarity([embedded_query],embeddings_list)[0]
             top_match = sorted(list(enumerate(scores)), key=lambda x:x[1])[-1]
             query="<image_soft_token>"+all_chunks[top_match[0]]+"Given the above info as reference, answer the below question: "+message
-            query="<image_soft_token>"+all_chunks[index]+"Given the above info as reference, answer the below question: "+message
         else:
             query="<image_soft_token>"+message
         
@@ -167,8 +176,29 @@ def image_prompt_chat():
 
         try:
             if use_google_api:
+                # with google-genai SDK you can just pass the PIL Image directly
                 load_google_model()
-                response = gemma_model.generate_content([query, image]).text
+                image = image.resize((512, 512))
+
+                # 2. Save into a BytesIO buffer (seekable and binary)
+                image_bytes = BytesIO()
+                image.save(image_bytes, format='JPEG')
+                image_bytes.seek(0)  # Make sure it's seekable before uploading
+
+                # 3. Upload — note: the SDK expects `content_type`, not `mime_type`
+                img_uploaded = google_client.files.upload(
+                    file=image_bytes,           # raw bytes
+                    config=types.UploadFileConfig(
+                        mime_type="image/jpeg"  # or "image/png"
+                    )
+                )
+                # send text+image in one call 
+                response_obj = google_client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[img_uploaded, message]
+                )
+                response = response_obj.text
+                google_client.files.delete(name=img_uploaded.name)
             else:
                 load_huggingface_model()
                 inputs = hf_processor(images=image, text=query, return_tensors="pt").to(hf_model.device)
@@ -178,6 +208,9 @@ def image_prompt_chat():
             response = f"Error generating response: {str(e)}"
 
         return jsonify({'reply': response})
+    except Exception as e:
+        return jsonify({'reply': f'Error: {str(e)}'}), 500
+
     except Exception as e:
         return jsonify({'reply': f'Error: {str(e)}'}), 500
 
